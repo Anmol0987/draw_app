@@ -13,6 +13,7 @@ interface User {
 const users: User[] = [];
 
 const checkUser = (token: string) => {
+    console.log(token);
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         if (typeof decoded == "string") {
@@ -22,7 +23,7 @@ const checkUser = (token: string) => {
         if (!decoded || !decoded.userId) {
             return null;
         }
-
+        console.log(decoded);
         return decoded.userId;
     } catch (e) {
         return null;
@@ -60,6 +61,7 @@ wss.on("connection", (ws, req) => {
         }
 
         if (parsedData.type == "join_canvas") {
+            console.log("here");
             const user = users.find(u => u.ws == ws);
             user?.canvas.push(parsedData.canvasId);
         }
@@ -70,9 +72,12 @@ wss.on("connection", (ws, req) => {
             }
             user.canvas = user?.canvas.filter(x => x === parsedData.canva);
         }
+        console.log(parsedData);
+        console.log(userId);
         if (parsedData.type == "draw") {
+            console.log("++++++++++");
             const canvasId = parsedData.canvasId;
-            const shapeType = parsedData.type;
+            const shapeType = parsedData.shapeType;
             const x = parsedData.x;
             const y = parsedData.y;
             const height = parsedData.height;
@@ -87,9 +92,10 @@ wss.on("connection", (ws, req) => {
                     width:Number(width),
                     userId
                 }
-                
             })
             users.forEach(user => {
+                console.log("aaaaaaa");
+                console.log(canvasId);
                 if (user.canvas.includes(canvasId)) {
                     user.ws.send(JSON.stringify({
                         type: "draw",

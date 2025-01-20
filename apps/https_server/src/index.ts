@@ -4,9 +4,10 @@ import { canvasSchema, SigninSchema, signupSchema } from "@repo/common/zod";
 import jwt from "jsonwebtoken";
 import { prismaClient } from "@repo/db/prisma";
 import { authMiddleware } from "./middleware";
-
+import cors from "cors";
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/signup", async (req, res) => {
     const parsedData = signupSchema.safeParse(req.body);
@@ -75,6 +76,7 @@ app.post("/signin", async (req, res) => {
         });
     }
 });
+
 app.post("/canvas/:canvasId", authMiddleware, async (req, res) => {
 
     const slug = req.params.canvasId || "";
@@ -103,17 +105,35 @@ app.post("/canvas/:canvasId", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/canvas/:canvasId", (req, res) => {
+app.get("/canvas/:canvasId",async (req, res) => {
     const canvasId = req.params.canvasId;
+    console.log(canvasId);
+
     try {
-        const canvas = prismaClient.canvas.findUnique({
+        const canvasData = await prismaClient.canvas.findFirst({
             where: {
                 Id: Number(canvasId)
+            },
+            select:{
+                Id: true,
+                slug: true
             }
-
         })
+        if (!canvasData) {
+            res.status(400).json({
+                message: "invalid canvas Iddd"
+            });
+            return;
+        }
+        console.log(canvasData);
+        const shapes = await prismaClient.shape.findMany({
+            where: {
+                canvasId: Number(canvasId)
+            }
+        })
+        console.log("+++",shapes);
         res.json({
-            canvas
+            shapes
         })
     }
     catch (error) {
