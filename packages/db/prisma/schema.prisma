@@ -33,14 +33,14 @@ model Canvas {
 }
 
 model Shape {
-  Id       Int    @id @default(autoincrement())
-  canvasId Int
-  userId   String
-  type     String
-  x        Int
-  y        Int
-  height   Int
-  width    Int
-  room     Canvas @relation(fields: [canvasId], references: [Id])
-  user     User   @relation(fields: [userId], references: [Id])
+  Id        Int    @id @default(autoincrement())
+  canvasId  Int
+  userId    String
+  shapeType String
+  x         Int
+  y         Int
+  height    Int
+  width     Int
+  room      Canvas @relation(fields: [canvasId], references: [Id])
+  user      User   @relation(fields: [userId], references: [Id])
 }

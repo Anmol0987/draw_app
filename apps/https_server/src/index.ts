@@ -75,19 +75,22 @@ app.post("/signin", async (req, res) => {
         });
     }
 });
-app.post("/canvas", authMiddleware, async(req, res) => {
+app.post("/canvas/:canvasId", authMiddleware, async (req, res) => {
 
-    const parsedData = canvasSchema.safeParse(req.body);
-    if (!parsedData.success) {
-        res.status(400).json({
-            message: "invalid canvas Id"
-        });
+    const slug = req.params.canvasId || "";
+    console.log(slug);
+    let canvas = await prismaClient.canvas.findUnique({
+        where: {
+            slug
+        }
+    })
+    if (canvas) {
+        res.json({
+            canvas: canvas.Id
+        })
         return;
     }
-    //@ts-ignore
-    const slug  = parsedData.data.Id;
-    console.log(slug);
-    const canvas =await prismaClient.canvas.create({
+    canvas = await prismaClient.canvas.create({
         data: {
             slug,
             //@ts-ignore
@@ -95,30 +98,29 @@ app.post("/canvas", authMiddleware, async(req, res) => {
         }
     })
     res.json({
-       canvas
+        canvas: canvas.Id
     })
-
 });
 
 
 app.get("/canvas/:canvasId", (req, res) => {
-const canvasId = req.params.canvasId;
-try{
-    const canvas = prismaClient.canvas.findUnique({
-        where: {
-            Id: Number(canvasId)
-        }
-    
-    })
-    res.json({
-        canvas
-    })
-}
-catch (error) {
-    res.status(400).json({
-        message: "invalid canvas Id"
-    });
-}
+    const canvasId = req.params.canvasId;
+    try {
+        const canvas = prismaClient.canvas.findUnique({
+            where: {
+                Id: Number(canvasId)
+            }
+
+        })
+        res.json({
+            canvas
+        })
+    }
+    catch (error) {
+        res.status(400).json({
+            message: "invalid canvas Id"
+        });
+    }
 });
 
 app.listen(3001);
