@@ -51,7 +51,7 @@ wss.on("connection", (ws, req) => {
         ws
     })
 
-    ws.on("message", async(data) => {
+    ws.on("message", async (data) => {
         let parsedData;
         if (typeof data !== "string") {
             parsedData = JSON.parse(data.toString());
@@ -75,27 +75,26 @@ wss.on("connection", (ws, req) => {
         console.log(parsedData);
         console.log(userId);
         if (parsedData.type == "draw") {
-            console.log("++++++++++");
             const canvasId = parsedData.canvasId;
             const shapeType = parsedData.shapeType;
             const x = parsedData.x;
             const y = parsedData.y;
-            const height = parsedData.height;
-            const width = parsedData.width;
+            const radius = parsedData.radius || null;
+            const height = parsedData.height || null;
+            const width = parsedData.width || null;
             await prismaClient.shape.create({
                 data: {
                     canvasId: Number(canvasId),
                     shapeType,
-                    x:Number(x),
-                    y:Number(y),
-                    height:Number(height),
-                    width:Number(width),
+                    x: Number(x),
+                    y: Number(y),
+                    radius:Number(radius),
+                    height: Number(height),
+                    width: Number(width),
                     userId
                 }
             })
             users.forEach(user => {
-                console.log("aaaaaaa");
-                console.log(canvasId);
                 if (user.canvas.includes(canvasId)) {
                     user.ws.send(JSON.stringify({
                         type: "draw",
@@ -103,6 +102,7 @@ wss.on("connection", (ws, req) => {
                         canvasId,
                         x,
                         y,
+                        radius,
                         height,
                         width,
                     }))

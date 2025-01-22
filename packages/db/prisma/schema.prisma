@@ -39,8 +39,9 @@ model Shape {
   shapeType String
   x         Int
   y         Int
-  height    Int
-  width     Int
+  height    Int?
+  width     Int?
+  radius    Int?
   room      Canvas @relation(fields: [canvasId], references: [Id])
   user      User   @relation(fields: [userId], references: [Id])
 }
