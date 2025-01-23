@@ -1,10 +1,10 @@
 "use client"
 import { draw } from "../canvas/draw";
 import { useEffect, useRef, useState } from "react";
-import { Circle, LineChartIcon, Minus, Mouse, Pencil, Pointer, RectangleHorizontalIcon, SquareIcon } from "lucide-react";
+import { Circle, Minus, Mouse, Pencil, Pointer, RectangleHorizontalIcon, SquareIcon } from "lucide-react";
 import { IconTool } from "./IconTool";
 
-export type Tool = "circle" | "rect" | "pencil" | "square" | "line";
+export type Tool = "mouse" | "circle" | "rect" | "pencil" | "square" | "line";
 
 export const Canvas = ({ canvasId, socket }: {
     canvasId: string,
@@ -18,8 +18,8 @@ export const Canvas = ({ canvasId, socket }: {
         //@ts-ignore
         window.selectedTool = selectedTool
         //@ts-ignore
-        const tools=window.selectedTool
-        console.log("+++++",tools)
+        const tools = window.selectedTool
+        console.log("+++++", tools)
     }, [selectedTool]);
     useEffect(() => {
         if (canvasRef.current) {
@@ -48,12 +48,16 @@ const TopBar = ({ setSelectedTool, selectedTool }: {
             padding: 10
         }}>
             <div className="flex gap-2">
+
+                <IconTool onClick={() => {
+                    setSelectedTool("mouse")
+                }} activated={selectedTool === "mouse"} icon={<Mouse />} />
                 <IconTool
                     onClick={() => {
                         setSelectedTool("pencil")
                     }}
                     activated={selectedTool === "pencil"}
-                    icon={<Mouse />}
+                    icon={<Pencil  />}
                 />
                 <IconTool onClick={() => {
                     setSelectedTool("rect")
@@ -64,9 +68,9 @@ const TopBar = ({ setSelectedTool, selectedTool }: {
                 <IconTool onClick={() => {
                     setSelectedTool("square")
                 }} activated={selectedTool === "square"} icon={<SquareIcon />} />
-                  <IconTool onClick={() => {
+                <IconTool onClick={() => {
                     setSelectedTool("line")
-                }} activated={selectedTool === "line"} icon={<Minus/>} />
+                }} activated={selectedTool === "line"} icon={<Minus />} />
             </div>
         </div>
     )

@@ -37,8 +37,9 @@ model Shape {
   canvasId  Int
   userId    String
   shapeType String
-  x         Int
-  y         Int
+  x         Int?
+  y         Int?
+  path      Json?
   height    Int?
   width     Int?
   radius    Int?

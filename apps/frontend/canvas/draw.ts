@@ -15,8 +15,7 @@ type Shape = {
     radius: number
 } | {
     shapeType: "pencil";
-    x: number;
-    y: number;
+    path: { x: number; y: number }[];
 } | {
     shapeType: "line";
     x: number;
@@ -29,6 +28,7 @@ type Shape = {
 export const draw = async (canvas: HTMLCanvasElement, canvasId: string, socket: WebSocket) => {
     const ctx = canvas.getContext("2d");
     let existingShapes: Shape[] = await getExistingShapes(canvasId);
+    let pencilPath: { x: number; y: number }[] = [];
     console.log("exisssss", existingShapes);
     if (!ctx) {
         alert("canvas not found");
@@ -59,13 +59,16 @@ export const draw = async (canvas: HTMLCanvasElement, canvasId: string, socket: 
         clicked = true;
         startX = e.clientX;
         startY = e.clientY;
+        //@ts-ignore
+        if (window.selectedTool === "pencil") {
+            pencilPath = [{ x: startX, y: startY }];
+        }
     });
     canvas.addEventListener("mouseup", (e) => {
         clicked = false;
         const width = e.clientX - startX;
         const height = e.clientY - startY;
         console.log("clicked mousedown")
-
         //@ts-ignore
         const selectedTool = window.selectedTool;
         console.log(selectedTool)
@@ -103,9 +106,16 @@ export const draw = async (canvas: HTMLCanvasElement, canvasId: string, socket: 
                 shapeType: "line",
                 x: startX,
                 y: startY,
-                width:e.clientX,
-                height:e.clientY
+                width: e.clientX,
+                height: e.clientY
             }
+        }
+        else if (selectedTool === "pencil" && pencilPath.length > 1) {
+            shape = {
+                shapeType: "pencil",
+                path: pencilPath,
+            };
+            console.log("+6++++", shape);
         }
         if (!shape) {
             return
@@ -154,11 +164,21 @@ export const draw = async (canvas: HTMLCanvasElement, canvasId: string, socket: 
                 canvasId
             }));
         }
+        else if (shape.shapeType === "pencil") {
+            socket.send(JSON.stringify({
+                type: "draw",
+                shapeType: "pencil",
+                path: pencilPath,
+                canvasId,
+            }));
+        }
     })
     canvas.addEventListener("mousemove", (e) => {
         if (clicked) {
             const width = e.clientX - startX;
             const height = e.clientY - startY;
+            const currentX = e.clientX - canvas.offsetLeft;
+            const currentY = e.clientY - canvas.offsetTop;
             clearCanvas(existingShapes, canvas, ctx);
             ctx.strokeStyle = "rgba(255, 255, 255)"
             // @ts-ignore
@@ -185,7 +205,17 @@ export const draw = async (canvas: HTMLCanvasElement, canvasId: string, socket: 
                 ctx.stroke();
                 ctx.closePath();
             }
-
+            else if (selectedTool === "pencil") {
+                pencilPath.push({ x: currentX, y: currentY });
+                ctx.beginPath();
+                ctx.moveTo(pencilPath[0].x, pencilPath[0].y);
+                for (let i = 1; i < pencilPath.length; i++) {
+                    ctx.lineTo(pencilPath[i].x, pencilPath[i].y);
+                }
+                ctx.strokeStyle = "rgba(255, 255, 255)";
+                ctx.stroke();
+                ctx.closePath();
+            }
         }
     })
 }
@@ -218,11 +248,21 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
             const maxw = Math.max(shape.width, shape.height)
             ctx.strokeRect(shape.x, shape.y, maxw, maxw);
         }
-        else if(shape.shapeType === "line"){
+        else if (shape.shapeType === "line") {
             ctx.beginPath();
-            ctx.moveTo(shape.x,shape.y);
-            ctx.lineTo(shape.width,shape.height);;
+            ctx.moveTo(shape.x, shape.y);
+            ctx.lineTo(shape.width, shape.height);;
             ctx.stroke()
+        }
+        else if (shape.shapeType === "pencil") {
+            ctx.beginPath();
+            const path = shape.path;
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x, path[i].y);
+            }
+            ctx.stroke();
+            ctx.closePath();
         }
     })
 }

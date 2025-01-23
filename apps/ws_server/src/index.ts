@@ -77,8 +77,9 @@ wss.on("connection", (ws, req) => {
         if (parsedData.type == "draw") {
             const canvasId = parsedData.canvasId;
             const shapeType = parsedData.shapeType;
-            const x = parsedData.x;
-            const y = parsedData.y;
+            const x = parsedData.x || null;
+            const y = parsedData.y || null;
+            const path = parsedData.path || null;
             const radius = parsedData.radius || null;
             const height = parsedData.height || null;
             const width = parsedData.width || null;
@@ -88,7 +89,8 @@ wss.on("connection", (ws, req) => {
                     shapeType,
                     x: Number(x),
                     y: Number(y),
-                    radius:Number(radius),
+                    path,
+                    radius: Number(radius),
                     height: Number(height),
                     width: Number(width),
                     userId
@@ -102,6 +104,7 @@ wss.on("connection", (ws, req) => {
                         canvasId,
                         x,
                         y,
+                        path,
                         radius,
                         height,
                         width,
